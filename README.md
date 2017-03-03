@@ -7,7 +7,7 @@
 
 ## Title of the work: 
 
-* Control of the arms of an humanoid robot using electromyography with Myo *
+*Control of the arms of an humanoid robot using electromyography with Myo*
 
 ## Summary
 
@@ -29,7 +29,7 @@ First, the Inmoov robotic system (the possibilities of movement of the arm and t
 - https://inmoov.fr/
 
 
-
+***
 
 # TRABAJO FIN DE MÁSTER
 
