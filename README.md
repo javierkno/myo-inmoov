@@ -1,11 +1,13 @@
 # TRABAJO FIN DE MÁSTER
 
-Curso académico: 2016-17
-Plan de estudios: MÁSTER UNIVERSITARIO EN AUTOMÁTICA Y ROBÓTICA
+- Curso académico: 2016-17
+- Plan de estudios: MÁSTER UNIVERSITARIO EN AUTOMÁTICA Y ROBÓTICA
 
 # Datos del Trabajo 
 
-## Título del trabajo: *Control de los brazos de un robot humanoide mediante electromiografía con Myo*
+## Título del trabajo: 
+
+*Control de los brazos de un robot humanoide mediante electromiografía con Myo*
 
 ## Resumen
 
