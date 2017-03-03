@@ -16,7 +16,7 @@ Robotic arms often perform repetitive and sometimes invariant tasks, but there a
 ### Concrete objectives
 
 - Design and implementation of a communication protocol between the robot Inmoov and the bracelet Myo
-- Classication of the intuitive and practical actions or movements of the human arm or hand using the Myo bracelet and its sensorisation
+- Classification of the intuitive and practical actions or movements of the human arm or hand using the Myo bracelet and its sensitization
 - Performance of a small robotic tasks with the Myo bracelet as a demonstration
 
 ### Methodology to be used
