@@ -5,7 +5,7 @@ Plan de estudios: MÁSTER UNIVERSITARIO EN AUTOMÁTICA Y ROBÓTICA
 
 # Datos del Trabajo 
 
-## Título del trabajo: **Control de los brazos de un robot humanoide mediante electromiografía con Myo**
+## Título del trabajo: *Control de los brazos de un robot humanoide mediante electromiografía con Myo*
 
 ## Resumen
 
@@ -23,5 +23,5 @@ En primer lugar, se debe estudiar el sistema robótico Inmoov (tanto las posibil
 
 ## Bibliografía o fuentes de información
 
-www.myo.com
-https://inmoov.fr/
+- www.myo.com
+- https://inmoov.fr/
