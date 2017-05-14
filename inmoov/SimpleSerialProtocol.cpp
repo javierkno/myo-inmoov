@@ -29,30 +29,30 @@ SimpleSerialProtocol::SimpleSerialProtocol(byte cmdBeginIndicator, byte cmdEndIn
 
 void SimpleSerialProtocol::receive()
 {
-    while (Serial.available()) {
+    while (Serial.available()>0) {
         byte b=Serial.read();
         
-   	if (b == cmdBeginInd) 
+       	if (b == cmdBeginInd) 
         {
-                cmdBegan = true;
-                bufferFull = false;
-                cmdBufferIdx = 0;                
-	}
-	else if (b == cmdEndInd)
-	{
-                cmdBegan = false;
-                CmdReceivedPtr(buf, cmdBufferIdx);
-	} 
-	else
-	{
-                if (cmdBegan) {
-                    if (cmdBufferIdx >= BUF_MAX_LENGTH) {
-                        bufferFull = true;
-                    } else {
-                        buf[cmdBufferIdx] = b;
-                        cmdBufferIdx++;
-                    }
+            cmdBegan = true;
+            bufferFull = false;
+            cmdBufferIdx = 0;                
+        }
+    	  else if (b == cmdEndInd && cmdBufferIdx == 4)
+    	  {
+            cmdBegan = false;
+            CmdReceivedPtr(buf, cmdBufferIdx);
+    	  } 
+    	  else
+    	  {
+            if (cmdBegan) {
+                if (cmdBufferIdx >= BUF_MAX_LENGTH) {
+                    bufferFull = true;
+                } else {
+                    buf[cmdBufferIdx] = b;
+                    cmdBufferIdx++;
                 }
+            }
         }
     }
 }

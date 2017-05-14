@@ -13,8 +13,8 @@
 class SimpleSerialProtocol {
 public:
 	static const byte BUF_MAX_LENGTH = 64;
-	static const byte CMD_BEGIN_IND = 94; //^
-	static const byte CMD_END_IND = 10; //Line Feed (LF)
+	static const byte CMD_BEGIN_IND = 2; //^
+	static const byte CMD_END_IND = 3; //Line Feed (LF)
 	
 	byte cmdBufferIdx;
 	byte buf[BUF_MAX_LENGTH];

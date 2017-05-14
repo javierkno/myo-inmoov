@@ -6,6 +6,8 @@ void setup()
 {
     Serial.begin(9600);
     p.CmdReceivedPtr = CmdReceived;
+
+    pinMode(LED_BUILTIN, OUTPUT);
 }
  
 void loop()
@@ -20,13 +22,13 @@ void CmdReceived(byte* cmd, byte cmdLength)
         for (int i = 0; i < cmdLength - 1; i++) sum +=cmd[i];
          
         if ((sum & 0xFF) == cmd[cmdLength - 1]) { //test if the CRC matches
-            Serial.print(char(cmd[0])); //A
-            Serial.print(char(cmd[1])); //B
-            Serial.print(char(cmd[2])); //C
-            digitalWrite(13, HIGH);
-                delay(100);
-                digitalWrite(13, LOW);
-                delay(200);
+            byte joint = cmd[0];
+            int position = cmd[1] << 8 | cmd[2];
+
+            Serial.print("art: ");
+            Serial.print(joint);
+            Serial.print(" pos: ");
+            Serial.println(position);
         }
     }
 }

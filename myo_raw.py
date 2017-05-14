@@ -209,13 +209,16 @@ class MyoRaw(object):
         ## start scanning
         print('scanning...')
         self.bt.discover()
+        t = time.time()
         while True:
             p = self.bt.recv_packet()
-            print('scan response:', p)
+            #print('scan response:', p)
 
             if p.payload.endswith(b'\x06\x42\x48\x12\x4A\x7F\x2C\x48\x47\xB9\xDE\x04\xA9\x01\x00\x06\xD5'):
                 addr = list(multiord(p.payload[2:8]))
                 break
+            if (time.time() - t > 5):
+                raise Exception("TIMEOUT")
         self.bt.end_scan()
 
         ## connect and wait for status event
