@@ -12,7 +12,7 @@ from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as Navigatio
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-import random, serial, time, glob, enum, math, collections, sys, time, re
+import random, serial, time, glob, enum, math, collections, sys, re
 import serial.tools.list_ports
 import numpy as np
 
@@ -86,7 +86,7 @@ class MyoThread(QtCore.QThread):
         self.emit(QtCore.SIGNAL("pose_px(QString)"),str(p.value))
         if p.value==myo.Pose.THUMB_TO_PINKY.value:
             self.joint+=1
-            if self.joint>3:
+            if self.joint>4:
                 self.joint=0
             print(self.joint)
 
@@ -132,18 +132,18 @@ class MyoThread(QtCore.QThread):
         print('Deep sleep activated')
 
     def pitch_to_servo(self):
-        p_min = 50
-        p_max = -50
+        p_min = 90
+        p_max = -90
         position = 0
 
         if (self.joint==Joint.SHOULDER_FRONT.value):
-            position = (((self.angles.pitch - p_min) * (l_shoulder_frontal_ext.max - l_shoulder_frontal_ext.min)) / (p_max - p_min)) + l_shoulder_frontal_ext.min
+            position = (((-self.angles.pitch - p_min) * (l_shoulder_frontal_ext.max - l_shoulder_frontal_ext.min)) / (p_max - p_min)) + l_shoulder_frontal_ext.min
         elif (self.joint==Joint.SHOULDER_LAT.value):
             position = (((self.angles.pitch - p_min) * (l_shoulder_lateral_ext.max - l_shoulder_lateral_ext.min)) / (p_max - p_min)) + l_shoulder_lateral_ext.min
         elif (self.joint==Joint.BICEPS.value):
             position = (((self.angles.pitch - p_min) * (l_biceps_rot.max - l_biceps_rot.min)) / (p_max - p_min)) + l_biceps_rot.min
         elif (self.joint==Joint.ELBOW.value):
-            position = (((self.angles.pitch - p_min) * (l_elbow_flex.max - l_elbow_flex.min)) / (p_max - p_min)) + l_elbow_flex.min
+            position = (((-self.angles.pitch - p_min) * (l_elbow_flex.max - l_elbow_flex.min)) / (p_max - p_min)) + l_elbow_flex.min
 
         return position
 
@@ -244,20 +244,20 @@ class MyForm(QtGui.QMainWindow):
     def send(self, joint, position):
         pos_1 = (position >> 8) & 0xFF
         pos_2 = (position) & 0xFF
-        self.arduino.write(bytes([2]))
+        self.arduino.write(bytes([253]))
         self.arduino.write(bytes([joint]))
         self.arduino.write(bytes([pos_1]))
         self.arduino.write(bytes([pos_2]))
         self.arduino.write(bytes([((joint + pos_1 + pos_2) & 0xFF)]))
-        self.arduino.write(bytes([3]))
+        self.arduino.write(bytes([254]))
 
     def show_angles(self):
 
         if (self.arduino_connected):
-            self.send(self.joint, int(self.thread.servo_position))
-            print("pos= " + str(int(self.thread.servo_position)))
-        else:
-            print("pos= " + str(int(self.thread.servo_position)))
+            self.send(int(self.thread.joint), int(self.thread.servo_position))
+
+        # print("pos= " + str(int(self.thread.servo_position)))
+        print("joint= " + str(int(self.thread.joint)))
 
         self.ui.lbl_art.setText("joint " + str(self.thread.joint))
         self.ui.lbl_mov.setText("roll = " + str(self.thread.angles.roll) + "\npitch = " + str(self.thread.angles.pitch) + "\nyaw = " + str(self.thread.angles.yaw))

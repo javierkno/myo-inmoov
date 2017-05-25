@@ -63,24 +63,37 @@ void moveJoint() {
     case 1:
       if (position > SFrontalMin && position < SFrontalMax) {
         servo1.write(position);
+        Serial.print("Mover servo 1 a");
+        Serial.println(position);
       }
       break;
     case 2:
       if (position > BRotationMin && position < BRotationMax) {
         servo2.write(position);
+        Serial.print("Mover servo 2 a");
+        Serial.println(position);
       }
       break;
     case 3:
       if (position > SLateralMin && position < SLateralMax) {
         servo3.write(position);
+        Serial.print("Mover servo 3 a");
+        Serial.println(position);
       }
       break;
     case 4:
       if (position > EFlexMin && position < EFlexMax) {
         servo4.write(position);
+        Serial.print("Mover servo 4 a");
+        Serial.println(position);
       }
       break;
   }
+
+  //Serial.print("art: ");
+  //Serial.print(joint);
+  //Serial.print(" pos: ");
+  //Serial.println(position);
 }
 
 void CmdReceived(byte* cmd, byte cmdLength)
@@ -95,10 +108,10 @@ void CmdReceived(byte* cmd, byte cmdLength)
             joint = cmd[0];
             position = cmd[1] << 8 | cmd[2];
 
-            Serial.print("art: ");
-            Serial.print(joint);
-            Serial.print(" pos: ");
-            Serial.println(position);
+            //Serial.print("art: ");
+            //Serial.print(joint);
+            //Serial.print(" pos: ");
+            //Serial.println(position);
         }
     }
 }
