@@ -18,6 +18,8 @@ import numpy as np
 
 from serial.tools.list_ports import comports
 
+import threading
+
 #pyuic4 myo.ui > myo_ui.py
 
 #ln -s /usr/lib/python3.6/site-packages/PyQt4/ ~/.virtualenvs/seagull/lib/python3.6/site-packages/
@@ -25,25 +27,52 @@ from serial.tools.list_ports import comports
 
 mov_range = collections.namedtuple('mov_range', ['min', 'max'])
 
-r_shoulder_frontal_ext = mov_range(95, 145)
-r_shoulder_lateral_ext = mov_range(50, 99)
-r_biceps_rot = mov_range(50, 90)
-r_elbow_flex = mov_range(45, 96)
+# r_shoulder_frontal_ext = mov_range(95, 145)
+# r_shoulder_lateral_ext = mov_range(50, 99)
+# r_biceps_rot = mov_range(50, 90)
+# r_elbow_flex = mov_range(45, 96)
 
-l_shoulder_frontal_ext = mov_range(20, 110)
-l_shoulder_lateral_ext = mov_range(95, 150)
-l_biceps_rot = mov_range(45, 105)
-l_elbow_flex = mov_range(17, 90)
+th = 5;
+
+l_shoulder_frontal_ext = mov_range(20+th, 110-th)
+l_shoulder_lateral_ext = mov_range(95+th, 150-th)
+l_biceps_rot = mov_range(45+th, 105-th)
+l_elbow_flex = mov_range(17+th, 90-th)
+
+
+def toEulerianAngle(q):
+    # normalization
+    quat = np.array(q)
+    quat = quat / np.sqrt(np.dot(quat, quat))
+
+    w = quat.item(0)
+    x = quat.item(1)
+    y = quat.item(2)
+    z = quat.item(3)
+
+    roll = math.atan2(2.0 * (w * x + y * z),
+                       1.0 - 2.0 * (x * x + y * y)) * (180 / 3.1415)
+
+    pitch = math.asin(max(-1.0, min(1.0, 2.0 * (-w * y + z * x)))) * (180 / 3.1415)
+
+    yaw = math.atan2(2.0 * (w * z + x * y),
+                    1.0 - 2.0 * (y * y + z * z)) * (180 / 3.1415)
+
+    euler_angles = collections.namedtuple('euler_angles', ['roll', 'pitch', 'yaw'])
+    return euler_angles(int(roll), int(pitch), int(yaw))
+
 
 class MyoThread(QtCore.QThread):
 
     myo_stop_signal = False
 
     pose = []
-
     quat = []
     acc = []
     gyro = []
+    joint = 0
+    angles = []
+    servo_position = 0
 
     def __init__(self):
         QtCore.QThread.__init__(self)
@@ -54,14 +83,18 @@ class MyoThread(QtCore.QThread):
 
     def save_pose(self, p):
         self.pose = p
-        #print(p)
         self.emit(QtCore.SIGNAL("pose_px(QString)"),str(p.value))
+        if p.value==myo.Pose.THUMB_TO_PINKY.value:
+            self.joint+=1
+            if self.joint>3:
+                self.joint=0
+            print(self.joint)
 
     def save_imu(self, quat, acc, gyro):
         self.quat = quat
         self.acc = acc
         self.gyro = gyro
-        #print(quat)
+        # print(quat)
 
     def connect(self):
         self.m = myo.MyoRaw()
@@ -79,6 +112,8 @@ class MyoThread(QtCore.QThread):
                 self.m.run(1)
                 t2 = time.time()
                 if t2-t>0.3:
+                    self.angles = toEulerianAngle(self.quat)
+                    self.servo_position = self.pitch_to_servo()
                     self.emit(QtCore.SIGNAL("imu()"))
                     t = t2;
         except Exception as e:
@@ -96,36 +131,31 @@ class MyoThread(QtCore.QThread):
         self.m.deep_sleep()
         print('Deep sleep activated')
 
+    def pitch_to_servo(self):
+        p_min = 50
+        p_max = -50
+        position = 0
+
+        if (self.joint==Joint.SHOULDER_FRONT.value):
+            position = (((self.angles.pitch - p_min) * (l_shoulder_frontal_ext.max - l_shoulder_frontal_ext.min)) / (p_max - p_min)) + l_shoulder_frontal_ext.min
+        elif (self.joint==Joint.SHOULDER_LAT.value):
+            position = (((self.angles.pitch - p_min) * (l_shoulder_lateral_ext.max - l_shoulder_lateral_ext.min)) / (p_max - p_min)) + l_shoulder_lateral_ext.min
+        elif (self.joint==Joint.BICEPS.value):
+            position = (((self.angles.pitch - p_min) * (l_biceps_rot.max - l_biceps_rot.min)) / (p_max - p_min)) + l_biceps_rot.min
+        elif (self.joint==Joint.ELBOW.value):
+            position = (((self.angles.pitch - p_min) * (l_elbow_flex.max - l_elbow_flex.min)) / (p_max - p_min)) + l_elbow_flex.min
+
+        return position
 
 class Joint(enum.Enum) :
-    SHOULDER_FRONT = 0
-    SHOULDER_LAT = 1
+    SHOULDER_FRONT = 1
     BICEPS = 2
-    ELBOW = 3
-
-class SerialThread(QtCore.QThread):
-
-    arduino = []
-
-    def __init__(self):
-        QtCore.QThread.__init__(self)
-
-    def run(self):
-        self.serial_stop_signal = False;
-        try:
-            while self.serial_stop_signal==False:
-                if self.arduino.in_waiting:
-                    print(self.arduino.readline())
-        except Exception as e:
-            print(str(e))
-            #pass
-        finally:
-            pass
+    SHOULDER_LAT = 3
+    ELBOW = 4
 
 class MyForm(QtGui.QMainWindow):
 
     x = 0
-    joint = 0
     arduino_connected = False
 
     def __init__(self, parent=None):
@@ -143,7 +173,6 @@ class MyForm(QtGui.QMainWindow):
                     QtGui.QPixmap('media/rotate.svg')]
 
         self.thread = MyoThread()
-        self.serialThread = SerialThread()
 
         QtCore.QObject.connect(self.ui.btn_connect,QtCore.SIGNAL("clicked()"), self.myo_run)
         QtCore.QObject.connect(self.ui.btn_disconnect,QtCore.SIGNAL("clicked()"), self.myo_disconnect)
@@ -156,7 +185,7 @@ class MyForm(QtGui.QMainWindow):
 
         self.connect(self.thread, QtCore.SIGNAL("pose_px(QString)"), self.set_pose_px)
         self.connect(self.thread, QtCore.SIGNAL("imu()"), self.show_angles)
-        self.connect(self.thread, QtCore.SIGNAL("imu()"), self.draw)
+        # self.connect(self.thread, QtCore.SIGNAL("imu()"), self.draw)
 
         self.init_buttons(False)
 
@@ -175,19 +204,31 @@ class MyForm(QtGui.QMainWindow):
         self.serial_ports()
 
         self.ui.lbl_art.setText("joint 1")
-        self.draw()
+        #self.draw()
+
+        #fig = plt.figure()
+        #ax = fig.gca(projection='3d')
+        # plt.show()
 
     def serial_ports(self):
         for p in comports():
             if not re.search(r'PID=2458:0*1', p[2]):
                 self.ui.cb_port.addItem(p[0])
 
+    def read_serial(self):
+        while True:
+            if self.arduino.in_waiting:
+                print(self.arduino.readline())
+                time.sleep(0.3)
+
     def arduino_serial_connect(self):
         try:
             self.arduino = serial.Serial(self.ui.cb_port.currentText(), 9600)
             self.arduino_connected = True
-            self.serialThread.arduino = self.arduino
+            self.serialThread = threading.Thread(target=self.read_serial)
+            self.serialThread.daemon = True
             self.serialThread.start()
+            print("Arduino connected")
         except Exception as e:
             print("Error de conexión con Arduino: " + str(e))
         finally:
@@ -198,7 +239,7 @@ class MyForm(QtGui.QMainWindow):
         self.arduino.close()
 
     def serial_send(self):
-        self.send(4, 1023)
+        self.send(0, 0)
 
     def send(self, joint, position):
         pos_1 = (position >> 8) & 0xFF
@@ -210,8 +251,16 @@ class MyForm(QtGui.QMainWindow):
         self.arduino.write(bytes([((joint + pos_1 + pos_2) & 0xFF)]))
         self.arduino.write(bytes([3]))
 
-    def resizeEvent(self, e):
-        self.setMinimumWidth(self.height())
+    def show_angles(self):
+
+        if (self.arduino_connected):
+            self.send(self.joint, int(self.thread.servo_position))
+            print("pos= " + str(int(self.thread.servo_position)))
+        else:
+            print("pos= " + str(int(self.thread.servo_position)))
+
+        self.ui.lbl_art.setText("joint " + str(self.thread.joint))
+        self.ui.lbl_mov.setText("roll = " + str(self.thread.angles.roll) + "\npitch = " + str(self.thread.angles.pitch) + "\nyaw = " + str(self.thread.angles.yaw))
 
     def draw(self):
 
@@ -234,13 +283,6 @@ class MyForm(QtGui.QMainWindow):
         n = int(pose)
         if n!=255:
             self.ui.lbl_pose.setPixmap(self.poses[n])
-        if n==myo.Pose.THUMB_TO_PINKY.value:
-            self.joint+=1
-            if self.joint>3:
-                self.joint=0
-            print(self.joint)
-            self.ui.lbl_art.setText("joint " + str(self.joint))
-
 
     def init_buttons(self, bool):
         self.ui.btn_disconnect.setEnabled(bool)
@@ -282,51 +324,6 @@ class MyForm(QtGui.QMainWindow):
         self.init_buttons(False)
         self.thread.set_myo_stop_signal(True);
         #self.thread.disconnect()
-
-    def show_angles(self):
-        p_min = 90
-        p_max = -90
-        angles = self.toEulerianAngle(self.thread.quat)
-
-        self.ui.lbl_mov.setText("roll = " + str(angles.roll) + "\npitch = " + str(angles.pitch) + "\nyaw = " + str(angles.yaw))
-
-        position = 0
-
-        if (self.joint==Joint.SHOULDER_FRONT.value):
-            position = (((angles.pitch - p_min) * (l_shoulder_frontal_ext.max - l_shoulder_frontal_ext.min)) / (p_max - p_min)) + l_shoulder_frontal_ext.min
-        elif (self.joint==Joint.SHOULDER_LAT.value):
-            position = (((angles.pitch - p_min) * (l_shoulder_lateral_ext.max - l_shoulder_lateral_ext.min)) / (p_max - p_min)) + l_shoulder_lateral_ext.min
-        elif (self.joint==Joint.BICEPS.value):
-            position = (((angles.pitch - p_min) * (l_biceps_rot.max - l_biceps_rot.min)) / (p_max - p_min)) + l_biceps_rot.min
-        elif (self.joint==Joint.ELBOW.value):
-            position = (((angles.pitch - p_min) * (l_elbow_flex.max - l_elbow_flex.min)) / (p_max - p_min)) + l_elbow_flex.min
-
-        if (self.arduino_connected):
-            self.send(self.joint, int(position))
-            print("pos= " + str(int(position)))
-        else:
-            print("pos= " + str(int(position)))
-
-    def toEulerianAngle(self, q):
-        # normalization
-        quat = np.array(q)
-        quat = quat / np.sqrt(np.dot(quat, quat))
-
-        w = quat.item(0)
-        x = quat.item(1)
-        y = quat.item(2)
-        z = quat.item(3)
-
-        roll = math.atan2(2.0 * (w * x + y * z),
-                           1.0 - 2.0 * (x * x + y * y)) * (180 / 3.1415)
-
-        pitch = math.asin(max(-1.0, min(1.0, 2.0 * (-w * y + z * x)))) * (180 / 3.1415)
-
-        yaw = math.atan2(2.0 * (w * z + x * y),
-                        1.0 - 2.0 * (y * y + z * z)) * (180 / 3.1415)
-
-        euler_angles = collections.namedtuple('euler_angles', ['roll', 'pitch', 'yaw'])
-        return euler_angles(int(roll), int(pitch), int(yaw))
 
 if __name__ == "__main__":
 
