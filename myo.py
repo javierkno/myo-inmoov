@@ -61,6 +61,20 @@ def toEulerianAngle(q):
     euler_angles = collections.namedtuple('euler_angles', ['roll', 'pitch', 'yaw'])
     return euler_angles(int(roll), int(pitch), int(yaw))
 
+def pitch_to_servo(joint, rawValue):
+    p_min = 90
+    p_max = -90
+    position = 0
+
+    if (joint==Joint.SHOULDER_FRONT.value):
+        position = (((-rawValue - p_min) * (l_shoulder_frontal_ext.max - l_shoulder_frontal_ext.min)) / (p_max - p_min)) + l_shoulder_frontal_ext.min
+    elif (joint==Joint.SHOULDER_LAT.value):
+        position = (((rawValue - p_min) * (l_shoulder_lateral_ext.max - l_shoulder_lateral_ext.min)) / (p_max - p_min)) + l_shoulder_lateral_ext.min
+    elif (joint==Joint.BICEPS.value):
+        position = (((rawValue - p_min) * (l_biceps_rot.max - l_biceps_rot.min)) / (p_max - p_min)) + l_biceps_rot.min
+    elif (joint==Joint.ELBOW.value):
+        position = (((-rawValue - p_min) * (l_elbow_flex.max - l_elbow_flex.min)) / (p_max - p_min)) + l_elbow_flex.min
+    return position
 
 class MyoThread(QtCore.QThread):
 
@@ -203,12 +217,21 @@ class MyForm(QtGui.QMainWindow):
 
         self.serial_ports()
 
-        self.ui.lbl_art.setText("joint 1")
+        self.ui.lbl_art.setText("joint 0")
         #self.draw()
 
         #fig = plt.figure()
         #ax = fig.gca(projection='3d')
         # plt.show()
+
+        print("1 ")
+        print(pitch_to_servo(1,0))
+        print("2")
+        print(pitch_to_servo(2,0))
+        print("3")
+        print(pitch_to_servo(3,0))
+        print("4")
+        print(pitch_to_servo(4,0))
 
     def serial_ports(self):
         for p in comports():

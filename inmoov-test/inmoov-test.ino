@@ -49,6 +49,12 @@ void setup() {
   servo2.attach(PinBRotation);
   servo3.attach(PinSLateral);
   servo4.attach(PinEFLex);
+
+  // Home position
+  servo1.write(65);
+  servo2.write(75);
+  servo3.write(122);
+  servo4.write(53);
 }
  
 void loop() {
@@ -63,37 +69,32 @@ void moveJoint() {
     case 1:
       if (position > SFrontalMin && position < SFrontalMax) {
         servo1.write(position);
-        Serial.print("Mover servo 1 a");
+        Serial.print("Mover servo 1 a ");
         Serial.println(position);
       }
       break;
     case 2:
       if (position > BRotationMin && position < BRotationMax) {
         servo2.write(position);
-        Serial.print("Mover servo 2 a");
+        Serial.print("Mover servo 2 a ");
         Serial.println(position);
       }
       break;
     case 3:
       if (position > SLateralMin && position < SLateralMax) {
         servo3.write(position);
-        Serial.print("Mover servo 3 a");
+        Serial.print("Mover servo 3 a ");
         Serial.println(position);
       }
       break;
     case 4:
       if (position > EFlexMin && position < EFlexMax) {
         servo4.write(position);
-        Serial.print("Mover servo 4 a");
+        Serial.print("Mover servo 4 a ");
         Serial.println(position);
       }
       break;
   }
-
-  //Serial.print("art: ");
-  //Serial.print(joint);
-  //Serial.print(" pos: ");
-  //Serial.println(position);
 }
 
 void CmdReceived(byte* cmd, byte cmdLength)
