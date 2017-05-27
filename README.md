@@ -5,7 +5,7 @@
 
 ## Work specifications
 
-### Title of the work: 
+### Title of the work:
 
 *Control of the arms of an humanoid robot using electromyography with Myo*
 
@@ -15,9 +15,9 @@ Robotic arms often perform repetitive and sometimes invariant tasks, but there a
 
 ### Concrete objectives
 
-- Design and implementation of a communication protocol between the robot Inmoov and the bracelet Myo
-- Classification of the intuitive and practical actions or movements of the human arm or hand using the Myo bracelet and its sensitization
-- Performance of a small robotic tasks with the Myo bracelet as a demonstration
+- Design and implementation of a communication protocol between the robot Inmoov and the bracelet Myo.
+- Classification of the intuitive and practical actions or movements of the human arm or hand using the Myo bracelet and its sensitization.
+- Performance of a small robotic tasks with the Myo bracelet as a demonstration.
 
 ### Methodology to be used
 
@@ -36,9 +36,9 @@ First, the Inmoov robotic system (the possibilities of movement of the arm and t
 - Curso académico: 2016-17
 - Plan de estudios: MÁSTER UNIVERSITARIO EN AUTOMÁTICA Y ROBÓTICA
 
-## Datos del Trabajo 
+## Datos del Trabajo
 
-### Título del trabajo: 
+### Título del trabajo:
 
 *Control de los brazos de un robot humanoide mediante electromiografía con Myo*
 
@@ -48,9 +48,9 @@ Los brazos robóticos suelen realizar tareas repetitivas y, en ocasiones, invari
 
 ### Objetivos concretos
 
-Diseñar e implementar un protocolo de comunicaciones entre el robot Inmoov y el brazalete Myo
-Clasificar acciones o movimientos intuitivos y prácticos del brazo o mano humanos utilizando el brazalete Myo y su sensorización
-Realizar pequeñas tareas robóticas con el brazalete Myo a modo de demostración
+- Diseñar e implementar un protocolo de comunicaciones entre el robot Inmoov y el brazalete Myo.
+- Clasificar acciones o movimientos intuitivos y prácticos del brazo o mano humanos utilizando el brazalete Myo y su sensorización.
+- Realizar pequeñas tareas robóticas con el brazalete Myo a modo de demostración.
 
 ### Metodología a emplear
 
